@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>LIVE FX CHART - Real-Time Forex & Financial Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0c0e12;
+      --bg-surface: #141820;
+      --bg-card: #1a1f2c;
+      --bg-hover: #232a3b;
+      --border-color: #283042;
+      --text-main: #f0f4f8;
+      --text-muted: #8c9ba5;
+      --accent-green: #00e676;
+      --accent-green-glow: rgba(0, 230, 118, 0.2);
+      --accent-blue: #2962ff;
+      --accent-blue-hover: #1e54e4;
+      --header-height: 56px;
+      --topbar-height: 48px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      width: 100vw;
+    }
+
+    /* Header */
+    header {
+      height: var(--header-height);
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #2962ff, #00b0ff);
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .symbol-tf-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .symbol-text {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .tf-badge {
+      color: var(--accent-blue);
+      font-weight: 600;
+      padding-left: 6px;
+      border-left: 1px solid var(--border-color);
+    }
+
+    .live-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-green);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: var(--accent-green-glow);
+      padding: 4px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      background-color: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Symbol Toolbar & Selector Bar */
+    .selector-bar {
+      height: var(--topbar-height);
+      background-color: var(--bg-base);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      flex-shrink: 0;
+    }
+
+    .selector-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .category-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 2px;
+      margin-left: 8px;
+      user-select: none;
+    }
+
+    .category-label:first-child {
+      margin-left: 0;
+    }
+
+    .symbol-btn {
+      background-color: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: 'JetBrains Mono', monospace;
+      flex-shrink: 0;
+    }
+
+    .symbol-btn:hover {
+      background-color: var(--bg-hover);
+      border-color: #3b465e;
+    }
+
+    .symbol-btn.active {
+      background-color: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(41, 98, 255, 0.4);
+    }
+
+    .tf-selector-container {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+      border-left: 1px solid var(--border-color);
+      padding-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .tf-btn {
+      background-color: transparent;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .tf-btn:hover {
+      color: var(--text-main);
+      background-color: var(--bg-card);
+    }
+
+    .tf-btn.active {
+      color: #ffffff;
+      background-color: var(--bg-card);
+      border-color: var(--accent-blue);
+    }
+
+    /* Main Chart Container */
+    .chart-container {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background-color: var(--bg-base);
+    }
+
+    .tradingview-widget-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    #tradingview_chart {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+      header {
+        padding: 0 10px;
+      }
+
+      .brand-title span.title-text {
+        display: none;
+      }
+
+      .live-status span {
+        display: none;
+      }
+
+      .live-status {
+        padding: 6px;
+        border-radius: 50%;
+      }
+
+      .symbol-tf-display {
+        font-size: 12px;
+        padding: 3px 8px;
+      }
+
+      .selector-bar {
+        padding: 0 8px;
+      }
+
+      .category-label {
+        font-size: 10px;
+        margin-left: 4px;
+      }
+
+      .symbol-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+
+      .tf-selector-container {
+        padding-left: 4px;
+      }
+
+      .tf-btn {
+        padding: 3px 6px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header>
+      <div class="brand-section">
+        <div class="brand-title">
+          <span class="logo-badge">FX</span>
+          <span class="title-text">LIVE FX CHART</span>
+        </div>
+        <div class="symbol-tf-display">
+          <span id="current-symbol-display" class="symbol-text">FX:EURUSD</span>
+          <span id="current-tf-display" class="tf-badge">1m</span>
+        </div>
+      </div>
+
+      <div class="live-status" title="Real-Time Data Feed Active">
+        <div class="pulse-dot"></div>
+        <span>LIVE MARKET DATA</span>
+      </div>
+    </header>
+
+    <!-- Symbol & Timeframe Selector Bar -->
+    <div class="selector-bar">
+      <span class="category-label">FOREX</span>
+      <button class="symbol-btn active" data-symbol="FX:EURUSD">EUR/USD</button>
+      <button class="symbol-btn" data-symbol="FX:GBPUSD">GBP/USD</button>
+      <button class="symbol-btn" data-symbol="FX:USDJPY">USD/JPY</button>
+      <button class="symbol-btn" data-symbol="FX:USDCHF">USD/CHF</button>
+      <button class="symbol-btn" data-symbol="FX:AUDUSD">AUD/USD</button>
+      <button class="symbol-btn" data-symbol="FX:USDCAD">USD/CAD</button>
+      <button class="symbol-btn" data-symbol="FX:NZDUSD">NZD/USD</button>
+      <button class="symbol-btn" data-symbol="FX:EURGBP">EUR/GBP</button>
+      <button class="symbol-btn" data-symbol="FX:EURJPY">EUR/JPY</button>
+      <button class="symbol-btn" data-symbol="FX:GBPJPY">GBP/JPY</button>
+      <button class="symbol-btn" data-symbol="FX:EURCHF">EUR/CHF</button>
+      <button class="symbol-btn" data-symbol="FX:GBPCHF">GBP/CHF</button>
+      <button class="symbol-btn" data-symbol="FX:AUDJPY">AUD/JPY</button>
+      <button class="symbol-btn" data-symbol="FX:CADJPY">CAD/JPY</button>
+      <button class="symbol-btn" data-symbol="FX:NZDJPY">NZD/JPY</button>
+      <button class="symbol-btn" data-symbol="FX:AUDCAD">AUD/CAD</button>
+      <button class="symbol-btn" data-symbol="FX:AUDNZD">AUD/NZD</button>
+      <button class="symbol-btn" data-symbol="FX:EURAUD">EUR/AUD</button>
+      <button class="symbol-btn" data-symbol="FX:EURCAD">EUR/CAD</button>
+      <button class="symbol-btn" data-symbol="FX:GBPCAD">GBP/CAD</button>
+
+      <span class="category-label">COMMODITIES</span>
+      <button class="symbol-btn" data-symbol="OANDA:XAUUSD">XAU/USD</button>
+      <button class="symbol-btn" data-symbol="OANDA:XAGUSD">XAG/USD</button>
+
+      <span class="category-label">INDICES & CRYPTO</span>
+      <button class="symbol-btn" data-symbol="FOREXCOM:SPXUSD">S&P 500</button>
+      <button class="symbol-btn" data-symbol="FOREXCOM:NSXUSD">NAS100</button>
+      <button class="symbol-btn" data-symbol="BITSTAMP:BTCUSD">BTC/USD</button>
+
+      <!-- Timeframe Selector Toolbar -->
+      <div class="tf-selector-container">
+        <button class="tf-btn active" data-tf="1">1m</button>
+        <button class="tf-btn" data-tf="5">5m</button>
+        <button class="tf-btn" data-tf="15">15m</button>
+        <button class="tf-btn" data-tf="30">30m</button>
+        <button class="tf-btn" data-tf="60">1H</button>
+        <button class="tf-btn" data-tf="240">4H</button>
+        <button class="tf-btn" data-tf="D">1D</button>
+      </div>
+    </div>
+
+    <!-- Live Chart Canvas Area -->
+    <main class="chart-container">
+      <div class="tradingview-widget-container">
+        <div id="tradingview_chart"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Official TradingView Advanced Chart Library -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <script type="text/javascript">
+    let currentSymbol = "FX:EURUSD";
+    let currentInterval = "1";
+    let tvWidget = null;
+
+    function initTradingViewWidget(symbol, interval) {
+      if (tvWidget && typeof tvWidget.remove === 'function') {
+        tvWidget.remove();
+      }
+
+      tvWidget = new TradingView.widget({
+        "autosize": true,
+        "symbol": symbol,
+        "interval": interval,
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "toolbar_bg": "#141820",
+        "enable_publishing": false,
+        "hide_side_toolbar": false,
+        "allow_symbol_change": true,
+        "save_image": true,
+        "details": true,
+        "hotlist": false,
+        "calendar": false,
+        "container_id": "tradingview_chart",
+        "show_popup_button": true,
+        "popup_width": "1000",
+        "popup_height": "650",
+        "studies": [
+          "STD;Volume"
+        ],
+        "disabled_features": [
+          "header_symbol_search_limited_to_single_symbol"
+        ],
+        "enabled_features": [
+          "side_toolbar_in_fullscreen_mode",
+          "header_in_fullscreen_mode"
+        ],
+        "overrides": {
+          "mainSeriesProperties.styleProperties.candleStyle.upColor": "#00e676",
+          "mainSeriesProperties.styleProperties.candleStyle.downColor": "#ff5252",
+          "mainSeriesProperties.styleProperties.candleStyle.drawWick": true,
+          "mainSeriesProperties.styleProperties.candleStyle.drawBorder": true,
+          "mainSeriesProperties.styleProperties.candleStyle.borderColor": "#00e676",
+          "mainSeriesProperties.styleProperties.candleStyle.borderUpColor": "#00e676",
+          "mainSeriesProperties.styleProperties.candleStyle.borderDownColor": "#ff5252",
+          "mainSeriesProperties.styleProperties.candleStyle.wickUpColor": "#00e676",
+          "mainSeriesProperties.styleProperties.candleStyle.wickDownColor": "#ff5252",
+          "paneProperties.background": "#0c0e12",
+          "paneProperties.vertGridProperties.color": "#181d28",
+          "paneProperties.horzGridProperties.color": "#181d28"
+        }
+      });
+    }
+
+    function updateHeaderDisplay() {
+      let rawSymbol = currentSymbol;
+      let cleanSymbol = rawSymbol.includes(':') ? rawSymbol.split(':')[1] : rawSymbol;
+      if (cleanSymbol.length === 6 && !cleanSymbol.includes('/')) {
+        cleanSymbol = cleanSymbol.substring(0, 3) + '/' + cleanSymbol.substring(3);
+      }
+
+      document.getElementById('current-symbol-display').textContent = cleanSymbol;
+      
+      const tfLabels = {
+        '1': '1M',
+        '5': '5M',
+        '15': '15M',
+        '30': '30M',
+        '60': '1H',
+        '240': '4H',
+        'D': '1D'
+      };
+      document.getElementById('current-tf-display').textContent = tfLabels[currentInterval] || currentInterval;
+    }
+
+    // Initialize Widget on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initTradingViewWidget(currentSymbol, currentInterval);
+      updateHeaderDisplay();
+
+      // Symbol selector click handlers
+      const symbolButtons = document.querySelectorAll('.symbol-btn');
+      symbolButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          symbolButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          currentSymbol = btn.getAttribute('data-symbol');
+          initTradingViewWidget(currentSymbol, currentInterval);
+          updateHeaderDisplay();
+        });
+      });
+
+      // Timeframe selector click handlers
+      const tfButtons = document.querySelectorAll('.tf-btn');
+      tfButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          tfButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          currentInterval = btn.getAttribute('data-tf');
+          initTradingViewWidget(currentSymbol, currentInterval);
+          updateHeaderDisplay();
+        });
+      });
+    });
+  </script>
+</body>
+</html>
